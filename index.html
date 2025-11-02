@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cours - Les Fonctions</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* === RESET & BASE === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'JetBrains Mono', monospace;
+            padding: 20px;
+        }
+
+        /* === STRUCTURE PRINCIPALE === */
+        .wrapper {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            height: 700px;
+            perspective: 2000px;
+        }
+
+        .book {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 1s;
+        }
+
+        /* === COUVERTURES === */
+        .cover {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            transition: transform 0.8s;
+        }
+
+        .cover-left {
+            left: 0;
+            border-radius: 15px 0 0 15px;
+            transform-origin: right center;
+        }
+
+        .cover-right {
+            right: 0;
+            border-radius: 0 15px 15px 0;
+            transform-origin: left center;
+        }
+
+        .cover.turn {
+            transform: rotateY(-180deg);
+        }
+
+        .cover-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .cover-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .cover-content p {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .book-page {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            background: #f9f7f3;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: transform 0.8s, z-index 0.3s;
+            overflow: hidden;
+            backface-visibility: hidden; /* ✅ AJOUT MAGIQUE */
+        }
+
+
+        /* pages de droite : pivot à gauche */
+        .book-page.page-right {
+            right: 0;
+            border-radius: 0 15px 15px 0;
+            transform-origin: left center;
+        }
+
+        /* pages de gauche : pivot à droite */
+        .book-page.page-left {
+            left: 0;
+            border-radius: 15px 0 0 15px;
+            transform-origin: right center;
+        }
+
+        /* effet de rotation */
+        .book-page.page-right.turn {
+            transform: rotateY(-180deg);
+        }
+
+        .book-page.page-left.turn {
+            transform: rotateY(180deg);
+        }
+
+        /* === CONTENU DES PAGES === */
+        .page-content {
+            padding: 40px;
+            height: 100%;
+            overflow-y: auto;
+            background: #f9f7f3;
+        }
+        .page-content {
+            transform: rotateY(0deg); /* ✅ Texte toujours orienté vers l’utilisateur */
+        }
+
+
+        .page-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .page-content::-webkit-scrollbar-track {
+            background: #e0ddd4;
+        }
+
+        .page-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        /* Numéros de page */
+        .page-number {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .page-left .page-number {
+            left: 40px;
+        }
+
+        .page-right .page-number {
+            right: 40px;
+        }
+
+        /* === TYPOGRAPHIE === */
+        h2 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #2a5298;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        p,
+        li {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            margin-left: 20px;
+        }
+
+        /* === BLOCS DE CODE ET BOXES === */
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 0.85rem;
+            overflow-x: auto;
+        }
+
+        .keyword {
+            color: #c678dd;
+        }
+
+        .function {
+            color: #61afef;
+        }
+
+        .string {
+            color: #98c379;
+        }
+
+        .comment {
+            color: #5c6370;
+            font-style: italic;
+        }
+
+        .important-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .definition-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .example-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        /* === ZONE DE NOTES === */
+        .note-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe6f0 100%);
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .note-title {
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .note-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .note-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: background 0.3s;
+        }
+
+        .note-btn:hover {
+            background: #5568d3;
+        }
+
+        .note-editor {
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            resize: vertical;
+        }
+
+        .note-editor:focus {
+            border-color: #667eea;
+        }
+
+        /* === BARRE D'OUTILS ÉDITEUR === */
+        .editor-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        .toolbar-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .toolbar-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        select.toolbar-btn {
+            cursor: pointer;
+        }
+
+        /* === BOUTONS DE NAVIGATION === */
+        .nextprev-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #1e3c72;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            z-index: 200;
+        }
+
+        .nextprev-btn:hover {
+            background: white;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .btn-prev {
+            left: 10px;
+        }
+
+        .btn-next {
+            right: 10px;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .wrapper {
+                height: 600px;
+            }
+
+            .page-content {
+                padding: 20px;
+                font-size: 0.85rem;
+            }
+
+            h2 {
+                font-size: 1.4rem;
+            }
+
+            h3 {
+                font-size: 1.1rem;
+            }
+
+            .nextprev-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .btn-prev {
+                left: 5px;
+            }
+
+            .btn-next {
+                right: 5px;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="book" id="book">
+            <!-- Couverture gauche -->
+            <div class="cover cover-left">
+                <div class="cover-content">
+                    <h1>📚</h1>
+                    <p>Cours d'Algorithmique</p>
+                </div>
+            </div>
+
+            <!-- Couverture droite (page d'accueil) -->
+            <div class="cover cover-right" id="cover">
+                <div class="cover-content">
+                    <h1>Les Fonctions</h1>
+                    <p>Algorithmique & Langage C</p>
+                    <p style="margin-top: 30px; font-size: 0.9rem;">🎓 Cours Optimisé</p>
+                    <p style="font-size: 0.9rem;">📝 Avec espaces de notes</p>
+                </div>
+            </div>
+
+            <!-- Page 1 (gauche) - Sommaire -->
+            <div class="book-page page-left" id="page0" style="z-index: 20;">
+                <div class="page-content">
+                    <h2>📑 Sommaire</h2>
+
+                    <h3 style="margin-top: 30px;">Partie I : Langage Algorithmique</h3>
+                    <ul style="margin-left: 30px;">
+                        <li><strong>1.</strong> Motivation et définitions</li>
+                        <li><strong>2.</strong> Les procédures</li>
+                        <li><strong>3.</strong> Les fonctions</li>
+                        <li><strong>4.</strong> Paramètres et arguments</li>
+                        <li><strong>5.</strong> Passage de paramètres</li>
+                    </ul>
+
+                    <h3 style="margin-top: 30px;">Partie II : Langage C</h3>
+                    <ul style="margin-left: 30px;">
+                        <li><strong>6.</strong> Définition de fonctions</li>
+                        <li><strong>7.</strong> Prototypes</li>
+                        <li><strong>8.</strong> Appels de fonctions</li>
+                        <li><strong>9.</strong> Portée des variables</li>
+                        <li><strong>10.</strong> Tableaux et fonctions</li>
+                    </ul>
+
+                    <div class="important-box" style="margin-top: 40px;">
+                        <strong>💡 À propos de ce cours :</strong><br>
+                        Ce cours contient des espaces pour prendre vos notes directement. Vos notes sont sauvegardées
+                        automatiquement !
+                    </div>
+                </div>
+                <div class="page-number">1</div>
+            </div>
+
+            <!-- Page 2 (droite) - Motivation -->
+            <div class="book-page page-right" id="page1">
+                <button class="nextprev-btn btn-prev" onclick="prevPage()">‹</button>
+                <div class="page-content">
+                    <h2>1. Motivation et Définitions</h2>
+
+                    <h3>Pourquoi les sous-algorithmes ?</h3>
+                    <p>Les sous-algorithmes permettent de <strong>décomposer</strong> un problème complexe en
+                        sous-problèmes plus simples et réutilisables.</p>
+
+                    <div class="definition-box">
+                        <strong>📖 Définition :</strong><br>
+                        Un <strong>sous-algorithme</strong> est un bloc d'instructions conçu pour effectuer un
+                        traitement bien défini et bien délimité, indépendamment du contexte de l'algorithme appelant.
+                    </div>
+
+                    <h3>Schéma général</h3>
+                    <div class="code-block">
+                        <span class="keyword">Algorithme</span> Principal
+                        ↓
+                        <span class="keyword">Sous-algorithme</span> 1
+                        <span class="keyword">Sous-algorithme</span> 2
+                        <span class="keyword">Sous-algorithme</span> 3
+                        ↓
+                        Résultats
+                    </div>
+
+                    <h3>Exemple de simplification</h3>
+                    <div class="code-block">
+                        <span class="keyword">Algorithme</span> Puissance
+                        <span class="keyword">variables</span> valeur, nbPuiss : entier
+                        <span class="keyword">Début</span>
+                        <span class="function">Écrire</span>(<span class="string">"Donnez une valeur :"</span>)
+                        <span class="function">Lire</span>(valeur)
+                        <span class="function">Écrire</span>(<span class="string">"Nombre de puissances :"</span>)
+                        <span class="function">Lire</span>(nbPuiss)
+                        <span class="function">calculPuissance</span>(valeur, nbPuiss)
+                        <span class="keyword">fin</span>
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note1')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor1', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor1', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor1', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor1" contenteditable="true" data-note-id="note1"></div>
+                    </div>
+                </div>
+                <div class="page-number">2</div>
+                <button class="nextprev-btn btn-next" onclick="nextPage()">›</button>
+            </div>
+
+            <!-- Page 3 (gauche) - Procédures -->
+            <div class="book-page page-left" id="page2" style="z-index: 19;">
+                <div class="page-content">
+                    <h2>2. Les Procédures</h2>
+
+                    <div class="definition-box">
+                        <strong>📖 Définition :</strong><br>
+                        Une <strong>procédure</strong> est un sous-algorithme qui effectue un traitement mais <strong>ne
+                            retourne pas de valeur</strong>.
+                    </div>
+
+                    <h3>Syntaxe d'une procédure</h3>
+                    <div class="code-block">
+                        <span class="keyword">Procédure</span> <span class="function">nomProcedure</span>(param1:type,
+                        param2:type)
+                        <span class="keyword">Variables</span> var1, var2 : type
+                        <span class="keyword">Début</span>
+                        <span class="comment">// Instructions de la procédure</span>
+                        ...
+                        <span class="keyword">fin</span>
+                    </div>
+
+                    <h3>Exemple : Procédure calculPuissance</h3>
+                    <div class="code-block">
+                        <span class="keyword">Procédure</span> <span class="function">calculPuissance</span>(val:entier,
+                        nb:entier)
+                        <span class="keyword">Variables</span> cpt, puissance : entier
+                        <span class="keyword">Début</span>
+                        puissance ← 1
+                        <span class="keyword">pour</span> cpt ← 1 <span class="keyword">à</span> nb <span
+                            class="keyword">faire</span>
+                        puissance ← puissance * val
+                        <span class="function">Écrire</span>(<span class="string">"La"</span>, cpt, <span
+                            class="string">"ième puissance de"</span>,
+                        val, <span class="string">"est"</span>, puissance)
+                        <span class="keyword">finpour</span>
+                        <span class="keyword">fin</span>
+                    </div>
+
+                    <div class="important-box">
+                        <strong>⚠️ Important :</strong><br>
+                        Une procédure <strong>modifie</strong> l'état du programme ou <strong>affiche</strong> des
+                        résultats, mais ne retourne pas de valeur directement.
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note2')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor2', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor2', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor2', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor2" contenteditable="true" data-note-id="note2"></div>
+                    </div>
+                </div>
+                <div class="page-number">3</div>
+            </div>
+
+            <!-- Page 4 (droite) - Fonctions -->
+            <div class="book-page page-right" id="page3">
+                <button class="nextprev-btn btn-prev" onclick="prevPage()">‹</button>
+                <div class="page-content">
+                    <h2>3. Les Fonctions</h2>
+
+                    <div class="definition-box">
+                        <strong>📖 Définition :</strong><br>
+                        Une <strong>fonction</strong> est un sous-algorithme qui effectue un traitement et
+                        <strong>retourne une valeur</strong>.
+                    </div>
+
+                    <h3>Syntaxe d'une fonction</h3>
+                    <div class="code-block">
+                        <span class="keyword">Fonction</span> <span class="function">nomFonction</span>(param1:type,
+                        param2:type) : <span class="keyword">typeRetour</span>
+                        <span class="keyword">Variables</span> var1, var2 : type
+                        <span class="keyword">Début</span>
+                        <span class="comment">// Instructions</span>
+                        ...
+                        <span class="keyword">Retourner</span> valeur
+                        <span class="keyword">fin</span>
+                    </div>
+
+                    <h3>Exemple : Fonction calculPuissance</h3>
+                    <div class="code-block">
+                        <span class="keyword">Fonction</span> <span class="function">calculPuissance</span>(x:entier,
+                        n:entier) : entier
+                        <span class="keyword">Variables</span> i, puis : entier
+                        <span class="keyword">Début</span>
+                        i ← 1
+                        puis ← 1
+                        <span class="keyword">pour</span> i ← 1 <span class="keyword">à</span> n <span
+                            class="keyword">faire</span>
+                        puis ← puis * x
+                        <span class="keyword">finpour</span>
+                        <span class="keyword">Retourner</span> puis
+                        <span class="keyword">fin</span>
+                    </div>
+
+                    <h3>Utilisation dans l'algorithme principal</h3>
+                    <div class="code-block">
+                        <span class="keyword">Algorithme</span> Principal
+                        <span class="keyword">variables</span> puissance : entier
+                        <span class="keyword">Début</span>
+                        puissance ← <span class="function">calculPuissance</span>(2, 5)
+                        <span class="function">Écrire</span>(<span class="string">"Résultat :"</span>, puissance)
+                        <span class="keyword">fin</span>
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note3')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor3', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor3', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor3', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor3" contenteditable="true" data-note-id="note3"></div>
+                    </div>
+                </div>
+                <div class="page-number">4</div>
+                <button class="nextprev-btn btn-next" onclick="nextPage()">›</button>
+            </div>
+
+            <!-- Page 5 (gauche) - Paramètres -->
+            <div class="book-page page-left" id="page4" style="z-index: 18;">
+                <div class="page-content">
+                    <h2>4. Paramètres et Arguments</h2>
+
+                    <div class="definition-box">
+                        <strong>📖 Définitions :</strong><br>
+                        • <strong>Paramètres formels</strong> : variables déclarées dans la définition du
+                        sous-algorithme<br>
+                        • <strong>Arguments (paramètres effectifs)</strong> : valeurs passées lors de l'appel
+                    </div>
+
+                    <h3>Exemple</h3>
+                    <div class="code-block">
+                        <span class="keyword">Algorithme</span> Principal
+                        <span class="keyword">variables</span> valeur, nbPuiss : entier
+                        <span class="keyword">Début</span>
+                        valeur ← 5
+                        nbPuiss ← 3
+                        <span class="function">calculPuissance</span>(valeur, nbPuiss) <span class="comment">←
+                            Arguments</span>
+                        <span class="keyword">fin</span>
+
+                        <span class="keyword">Procédure</span> <span class="function">calculPuissance</span>(val, nb)
+                        <span class="comment">← Paramètres formels</span>
+                        <span class="keyword">variables</span> val, nb : entier
+                        <span class="keyword">Début</span>
+                        ...
+                        <span class="keyword">fin</span>
+                    </div>
+
+                    <h3>Règles importantes</h3>
+                    <div class="important-box">
+                        <strong>✓ Règles à respecter :</strong><br>
+                        • Le nombre de paramètres = nombre d'arguments<br>
+                        • Le type du k<sup>ième</sup> argument = type du k<sup>ième</sup> paramètre<br>
+                        • Paramètre en "Donnée" : doit avoir une valeur à l'appel<br>
+                        • Paramètre en "Résultat" : doit recevoir une valeur dans le sous-algorithme
+                    </div>
+
+                    <h3>Types de paramètres</h3>
+                    <ul>
+                        <li><strong>Paramètres en Donnée (D)</strong> : valeurs transmises à la fonction</li>
+                        <li><strong>Paramètres en Résultat (R)</strong> : valeurs retournées par la fonction</li>
+                        <li><strong>Paramètres en Donnée/Résultat (D/R)</strong> : valeurs transmises ET modifiées</li>
+                    </ul>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note4')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor4', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor4', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor4', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor4" contenteditable="true" data-note-id="note4"></div>
+                    </div>
+                </div>
+                <div class="page-number">5</div>
+            </div>
+
+            <!-- Page 6 (droite) - Passage paramètres -->
+            <div class="book-page page-right" id="page5">
+                <button class="nextprev-btn btn-prev" onclick="prevPage()">‹</button>
+                <div class="page-content">
+                    <h2>5. Passage de Paramètres</h2>
+
+                    <h3>5.1 Passage par valeur</h3>
+                    <div class="definition-box">
+                        <strong>📖 Définition :</strong><br>
+                        La fonction reçoit une <strong>copie</strong> de la valeur. Les modifications dans la fonction
+                        n'affectent pas la variable originale.
+                    </div>
+
+                    <div class="example-box">
+                        <strong>Exemple :</strong>
+                        <div class="code-block">
+                            <span class="keyword">Fonction</span> <span class="function">f</span>(x : entier)
+                            <span class="keyword">Début</span>
+                            x ← x + 10 <span class="comment">// Modifie la copie locale</span>
+                            <span class="keyword">Retourner</span> x
+                            <span class="keyword">fin</span>
+
+                            <span class="keyword">Algorithme</span> Principal
+                            <span class="keyword">variables</span> t : entier
+                            <span class="keyword">Début</span>
+                            t ← 5
+                            z ← <span class="function">f</span>(t) <span class="comment">// t reste à 5</span>
+                            <span class="function">Écrire</span>(t) <span class="comment">// Affiche : 5</span>
+                            <span class="keyword">fin</span>
+                        </div>
+                    </div>
+
+                    <h3>5.2 Passage par variable (référence)</h3>
+                    <div class="definition-box">
+                        <strong>📖 Définition :</strong><br>
+                        La fonction reçoit <strong>l'adresse</strong> de la variable. Les modifications affectent
+                        directement la variable originale.
+                    </div>
+
+                    <div class="example-box">
+                        <strong>Exemple :</strong>
+                        <div class="code-block">
+                            <span class="keyword">Procédure</span> <span class="function">incrementer</span>(<span
+                                class="keyword">var</span> x : entier)
+                            <span class="keyword">Début</span>
+                            x ← x + 1 <span class="comment">// Modifie l'original</span>
+                            <span class="keyword">fin</span>
+
+                            <span class="keyword">Algorithme</span> Principal
+                            <span class="keyword">variables</span> t : entier
+                            <span class="keyword">Début</span>
+                            t ← 5
+                            <span class="function">incrementer</span>(t)
+                            <span class="function">Écrire</span>(t) <span class="comment">// Affiche : 6</span>
+                            <span class="keyword">fin</span>
+                        </div>
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note5')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor5', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor5', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor5', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor5" contenteditable="true" data-note-id="note5"></div>
+                    </div>
+                </div>
+                <div class="page-number">6</div>
+                <button class="nextprev-btn btn-next" onclick="nextPage()">›</button>
+            </div>
+
+            <!-- Page 7 (gauche) - Langage C Introduction -->
+            <div class="book-page page-left" id="page6" style="z-index: 17;">
+                <div class="page-content">
+                    <h2 style="color: #c7254e;">PARTIE II : LANGAGE C</h2>
+
+                    <h2>6. Définition de Fonctions en C</h2>
+
+                    <h3>Syntaxe générale</h3>
+                    <div class="code-block">
+                        type_retour <span class="function">identifiant</span>(parametres_formels)
+                        {
+                        <span class="comment">// Déclarations de variables locales</span>
+                        <span class="comment">// Instructions</span>
+                        <span class="keyword">return</span> expression;
+                        }
+                    </div>
+
+                    <div class="important-box">
+                        <strong>⚠️ Important en C :</strong><br>
+                        • Type de retour : int, float, char, void<br>
+                        • <strong>void</strong> = fonction qui ne retourne rien (procédure)<br>
+                        • Toute fonction non-void doit avoir un <strong>return</strong><br>
+                        • Le C ne permet que le <strong>passage par valeur</strong>
+                    </div>
+
+                    <h3>Exemples de fonctions</h3>
+                    <div class="code-block">
+                        <span class="comment">// Fonction qui retourne int</span>
+                        <span class="keyword">int</span> <span class="function">somme</span>(<span
+                            class="keyword">int</span> a, <span class="keyword">int</span> b) {
+                        <span class="keyword">int</span> res = a + b;
+                        <span class="keyword">return</span> res;
+                        }
+
+                        <span class="comment">// Version courte</span>
+                        <span class="keyword">int</span> <span class="function">sommeBis</span>(<span
+                            class="keyword">int</span> a, <span class="keyword">int</span> b) {
+                        <span class="keyword">return</span> (a + b);
+                        }
+
+                        <span class="comment">// Fonction void (procédure)</span>
+                        <span class="keyword">void</span> <span class="function">afficheCoucou</span>() {
+                        printf(<span class="string">"Coucou \n"</span>);
+                        }
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note6')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor6', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor6', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor6', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor6" contenteditable="true" data-note-id="note6"></div>
+                    </div>
+                </div>
+                <div class="page-number">7</div>
+            </div>
+
+            <!-- Page 8 (droite) - Prototypes -->
+            <div class="book-page page-right" id="page7">
+                <button class="nextprev-btn btn-prev" onclick="prevPage()">‹</button>
+                <div class="page-content">
+                    <h2>7. Prototypes de Fonctions</h2>
+
+                    <div class="definition-box">
+                        <strong>📖 Définition :</strong><br>
+                        Le <strong>prototype</strong> est la déclaration d'une fonction. Il indique au compilateur
+                        comment appeler la fonction.
+                    </div>
+
+                    <h3>Syntaxe</h3>
+                    <div class="code-block">
+                        type_retour <span class="function">identifiant</span>(parametres_formels);
+                    </div>
+
+                    <h3>Exemples de prototypes</h3>
+                    <div class="code-block">
+                        <span class="keyword">int</span> <span class="function">factorielle</span>(<span
+                            class="keyword">int</span> n);
+                        <span class="keyword">int</span> <span class="function">somme</span>(<span
+                            class="keyword">int</span> a, <span class="keyword">int</span> b);
+                        <span class="keyword">float</span> <span class="function">multiplie</span>(<span
+                            class="keyword">float</span> f, <span class="keyword">int</span> a);
+                        <span class="keyword">void</span> <span class="function">affiche</span>(<span
+                            class="keyword">int</span> x);
+
+                        <span class="comment">// Ou sans les noms de paramètres</span>
+                        <span class="keyword">int</span> <span class="function">puissance</span>(<span
+                            class="keyword">int</span>, <span class="keyword">int</span>);
+                    </div>
+
+                    <h3>Structure complète d'un programme</h3>
+                    <div class="code-block">
+                        <span class="keyword">#include</span> &lt;stdio.h&gt;
+
+                        <span class="comment">// PROTOTYPES</span>
+                        <span class="keyword">int</span> <span class="function">calculPuissance</span>(<span
+                            class="keyword">int</span> x, <span class="keyword">int</span> n);
+
+                        <span class="comment">// FONCTION PRINCIPALE</span>
+                        <span class="keyword">int</span> <span class="function">main</span>() {
+                        <span class="keyword">int</span> puiss;
+                        puiss = <span class="function">calculPuissance</span>(2, 5);
+                        printf(<span class="string">"%d\n"</span>, puiss);
+                        <span class="keyword">return</span> 0;
+                        }
+
+                        <span class="comment">// DÉFINITION DE LA FONCTION</span>
+                        <span class="keyword">int</span> <span class="function">calculPuissance</span>(<span
+                            class="keyword">int</span> x, <span class="keyword">int</span> n) {
+                        <span class="keyword">int</span> i, p = 1;
+                        <span class="keyword">for</span> (i = 1; i &lt;= n; i++)
+                        p = p * x;
+                        <span class="keyword">return</span> p;
+                        }
+                    </div>
+
+                    <div class="important-box">
+                        <strong>💡 Intérêt du prototype :</strong><br>
+                        • Permet d'appeler une fonction avant sa définition<br>
+                        • Le compilateur vérifie la cohérence de l'appel<br>
+                        • Placé en début de fichier ou dans un fichier .h
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note7')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor7', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor7', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor7', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor7" contenteditable="true" data-note-id="note7"></div>
+                    </div>
+                </div>
+                <div class="page-number">8</div>
+                <button class="nextprev-btn btn-next" onclick="nextPage()">›</button>
+            </div>
+
+            <!-- Page 9 (gauche) - Appels -->
+            <div class="book-page page-left" id="page8" style="z-index: 16;">
+                <div class="page-content">
+                    <h2>8. Appels de Fonctions</h2>
+
+                    <h3>Principe</h3>
+                    <p>La définition d'une fonction n'exécute pas le code. Il faut <strong>appeler</strong> la fonction
+                        pour l'exécuter.</p>
+
+                    <div class="code-block">
+                        <span class="comment">// Appel de fonction</span>
+                        <span class="function">identifiant</span>(parametres_effectifs);
+                    </div>
+
+                    <h3>Exemple complet</h3>
+                    <div class="code-block">
+                        <span class="keyword">#include</span> &lt;stdio.h&gt;
+
+                        <span class="keyword">int</span> <span class="function">cube</span>(<span
+                            class="keyword">int</span> x) {
+                        <span class="keyword">return</span> x * x * x;
+                        }
+
+                        <span class="keyword">void</span> <span class="function">afficheCube</span>(<span
+                            class="keyword">int</span> x) {
+                        <span class="keyword">int</span> resultat = <span class="function">cube</span>(x);
+                        printf(<span class="string">"%d \n"</span>, resultat);
+                        }
+
+                        <span class="keyword">int</span> <span class="function">main</span>() {
+                        <span class="keyword">int</span> res = <span class="function">cube</span>(3); <span
+                            class="comment">// Appel 1</span>
+                        printf(<span class="string">"%d \n"</span>, res);
+                        <span class="function">afficheCube</span>(4); <span class="comment">// Appel 2</span>
+                        <span class="keyword">return</span> 0;
+                        }
+                    </div>
+
+                    <h3>Erreurs courantes</h3>
+                    <div class="important-box">
+                        <strong>⚠️ Erreurs à éviter :</strong><br><br>
+
+                        <strong>1. Appel avant déclaration</strong><br>
+                        ❌ Appeler une fonction avant son prototype<br><br>
+
+                        <strong>2. Mauvais nombre d'arguments</strong><br>
+                        <code>cube(3, 5)</code> → Erreur si cube attend 1 paramètre<br><br>
+
+                        <strong>3. Variable non déclarée</strong><br>
+                        Utiliser une variable qui n'existe pas dans la fonction<br><br>
+
+                        <strong>4. Return manquant</strong><br>
+                        Oublier le return dans une fonction non-void
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note8')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor8', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor8', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor8', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor8" contenteditable="true" data-note-id="note8"></div>
+                    </div>
+                </div>
+                <div class="page-number">9</div>
+            </div>
+
+            <!-- Page 10 (droite) - Portée variables -->
+            <div class="book-page page-right" id="page9">
+                <button class="nextprev-btn btn-prev" onclick="prevPage()">‹</button>
+                <div class="page-content">
+                    <h2>9. Portée des Variables</h2>
+
+                    <h3>Variables Locales</h3>
+                    <div class="definition-box">
+                        <strong>📖 Définition :</strong><br>
+                        Variables déclarées <strong>à l'intérieur</strong> d'une fonction. Elles sont visibles
+                        uniquement dans cette fonction et détruites à sa sortie.
+                    </div>
+
+                    <h3>Variables Globales</h3>
+                    <div class="definition-box">
+                        <strong>📖 Définition :</strong><br>
+                        Variables déclarées <strong>en dehors</strong> de toute fonction. Elles sont accessibles par
+                        toutes les fonctions du programme.
+                    </div>
+
+                    <h3>Exemple illustratif</h3>
+                    <div class="code-block">
+                        <span class="keyword">#include</span> &lt;stdio.h&gt;
+
+                        <span class="keyword">int</span> a = 2; <span class="comment">// Variable GLOBALE</span>
+
+                        <span class="keyword">int</span> <span class="function">somme</span>(<span
+                            class="keyword">int</span> y) { <span class="comment">// y est LOCAL</span>
+                        <span class="keyword">int</span> x = 3; <span class="comment">// x est LOCAL</span>
+                        <span class="keyword">return</span> a + x + y;
+                        }
+
+                        <span class="keyword">int</span> <span class="function">main</span>() {
+                        <span class="keyword">int</span> res = <span class="function">somme</span>(7); <span
+                            class="comment">// res est LOCAL à main</span>
+                        printf(<span class="string">"%d \n"</span>, res); <span class="comment">// Affiche: 12</span>
+                        <span class="keyword">return</span> 0;
+                        }
+                    </div>
+
+                    <h3>Masquage de variables</h3>
+                    <div class="important-box">
+                        <strong>⚠️ Attention :</strong><br>
+                        Si une variable locale porte le même nom qu'une variable globale, la variable <strong>locale
+                            masque</strong> la globale dans la fonction.
+                    </div>
+
+                    <div class="code-block">
+                        <span class="keyword">int</span> a = 2; <span class="comment">// Globale</span>
+
+                        <span class="keyword">int</span> <span class="function">fonction</span>() {
+                        <span class="keyword">int</span> a = 5; <span class="comment">// Locale (masque la
+                            globale)</span>
+                        <span class="keyword">return</span> a; <span class="comment">// Retourne 5, pas 2</span>
+                        }
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note9')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor9', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor9', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor9', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor9" contenteditable="true" data-note-id="note9"></div>
+                    </div>
+                </div>
+                <div class="page-number">10</div>
+                <button class="nextprev-btn btn-next" onclick="nextPage()">›</button>
+            </div>
+
+            <!-- Page 11 (gauche) - Tableaux 1D -->
+            <div class="book-page page-left" id="page10" style="z-index: 15;">
+                <div class="page-content">
+                    <h2>10. Tableaux et Fonctions</h2>
+
+                    <h3>10.1 Tableaux 1D en paramètre</h3>
+
+                    <div class="important-box">
+                        <strong>⚠️ Règles importantes :</strong><br>
+                        • Une fonction <strong>ne peut PAS retourner</strong> un tableau<br>
+                        • Un tableau peut être <strong>passé en paramètre</strong><br>
+                        • La taille doit être passée séparément
+                    </div>
+
+                    <h3>Déclaration</h3>
+                    <div class="code-block">
+                        <span class="keyword">void</span> <span class="function">fonction</span>(<span
+                            class="keyword">int</span> tab[], <span class="keyword">int</span> taille);
+                        <span class="comment">// ou</span>
+                        <span class="keyword">void</span> <span class="function">fonction</span>(<span
+                            class="keyword">const int</span> tab[], <span class="keyword">int</span> taille);
+                    </div>
+
+                    <h3>Exemple : Saisie d'un tableau</h3>
+                    <div class="code-block">
+                        <span class="keyword">void</span> <span class="function">saisieTab1D</span>(<span
+                            class="keyword">int</span> tab[], <span class="keyword">int</span> nbElt) {
+                        <span class="keyword">int</span> i;
+                        <span class="keyword">for</span> (i = 0; i &lt; nbElt; i++) {
+                        printf(<span class="string">"Élément %d: "</span>, i);
+                        scanf(<span class="string">"%d"</span>, &tab[i]);
+                        }
+                        }
+                    </div>
+
+                    <h3>Exemple : Affichage d'un tableau</h3>
+                    <div class="code-block">
+                        <span class="keyword">void</span> <span class="function">affiche_tab</span>(<span
+                            class="keyword">const int</span> tab[], <span class="keyword">int</span> nbElt) {
+                        <span class="keyword">int</span> i;
+                        <span class="keyword">for</span> (i = 0; i &lt; nbElt; i++) {
+                        printf(<span class="string">"tab[%d]: %d\n"</span>, i, tab[i]);
+                        }
+                        }
+                    </div>
+
+                    <h3>Exemple : Somme des éléments</h3>
+                    <div class="code-block">
+                        <span class="keyword">int</span> <span class="function">SommeTab1D</span>(<span
+                            class="keyword">int</span> tab[], <span class="keyword">int</span> nbElt) {
+                        <span class="keyword">int</span> i = 0, somme = 0;
+                        <span class="keyword">while</span> (i &lt; nbElt) {
+                        somme = somme + tab[i];
+                        i++;
+                        }
+                        <span class="keyword">return</span> somme;
+                        }
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note10')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor10', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor10', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor10', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor10" contenteditable="true" data-note-id="note10"></div>
+                    </div>
+                </div>
+                <div class="page-number">11</div>
+            </div>
+
+            <!-- Page 12 (droite) - Tableaux 2D et Conclusion -->
+            <div class="book-page page-right" id="page11">
+                <button class="nextprev-btn btn-prev" onclick="prevPage()">‹</button>
+                <div class="page-content">
+                    <h3>10.2 Tableaux 2D en paramètre</h3>
+
+                    <div class="important-box">
+                        <strong>⚠️ Règle importante :</strong><br>
+                        Pour un tableau 2D, la <strong>seconde dimension</strong> doit être spécifiée !
+                    </div>
+
+                    <h3>Syntaxe correcte</h3>
+                    <div class="code-block">
+                        <span class="comment">// ✓ CORRECT</span>
+                        <span class="keyword">void</span> <span class="function">affiche</span>(<span
+                            class="keyword">int</span> tab[][15], <span class="keyword">int</span> lignes);
+
+                        <span class="comment">// ❌ INCORRECT</span>
+                        <span class="keyword">void</span> <span class="function">affiche</span>(<span
+                            class="keyword">int</span> tab[][], <span class="keyword">int</span> lignes);
+                    </div>
+
+                    <h3>Exemple : Saisie matrice carrée</h3>
+                    <div class="code-block">
+                        <span class="keyword">void</span> <span class="function">saisieTab2D</span>(<span
+                            class="keyword">int</span> dim, <span class="keyword">int</span> tab[][dim]) {
+                        <span class="keyword">int</span> i, j;
+                        <span class="keyword">for</span> (i = 0; i &lt; dim; i++) {
+                        <span class="keyword">for</span> (j = 0; j &lt; dim; j++) {
+                        printf(<span class="string">"M[%d][%d] = "</span>, i+1, j+1);
+                        scanf(<span class="string">"%d"</span>, &tab[i][j]);
+                        }
+                        }
+                        }
+                    </div>
+
+                    <h3>Programme complet</h3>
+                    <div class="code-block">
+                        <span class="keyword">#include</span> &lt;stdio.h&gt;
+                        <span class="keyword">#define</span> MAX 100
+
+                        <span class="keyword">void</span> <span class="function">saisieTab1D</span>(<span
+                            class="keyword">int</span>[], <span class="keyword">int</span>);
+                        <span class="keyword">void</span> <span class="function">affiche_tab</span>(<span
+                            class="keyword">int</span>[], <span class="keyword">int</span>);
+                        <span class="keyword">int</span> <span class="function">SommeTab1D</span>(<span
+                            class="keyword">int</span>[], <span class="keyword">int</span>);
+
+                        <span class="keyword">int</span> <span class="function">main</span>() {
+                        <span class="keyword">int</span> n, somme;
+                        <span class="keyword">int</span> t[MAX];
+
+                        printf(<span class="string">"Entrez n: "</span>);
+                        scanf(<span class="string">"%d"</span>, &n);
+
+                        <span class="function">saisieTab1D</span>(t, n);
+                        <span class="function">affiche_tab</span>(t, n);
+                        somme = <span class="function">SommeTab1D</span>(t, n);
+
+                        printf(<span class="string">"Somme: %d\n"</span>, somme);
+                        <span class="keyword">return</span> 0;
+                        }
+                    </div>
+
+                    <div class="example-box">
+                        <strong>🎯 Points clés à retenir :</strong><br>
+                        ✓ Toujours passer la taille du tableau<br>
+                        ✓ Utiliser <code>const</code> si pas de modification<br>
+                        ✓ Tableau 2D : spécifier la 2ème dimension<br>
+                        ✓ Les modifications affectent le tableau original
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Mes Notes</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note11')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor11', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor11', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor11', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor11" contenteditable="true" data-note-id="note11"></div>
+                    </div>
+                </div>
+                <div class="page-number">12</div>
+                <button class="nextprev-btn btn-next" onclick="nextPage()">›</button>
+            </div>
+
+            <!-- Page finale (gauche) - Récapitulatif -->
+            <div class="book-page page-left" id="page12" style="z-index: 14;">
+                <div class="page-content">
+                    <h2>📚 Récapitulatif</h2>
+
+                    <h3>En Algorithmique</h3>
+                    <div class="definition-box">
+                        <strong>Procédure :</strong> sous-algorithme sans retour<br>
+                        <strong>Fonction :</strong> sous-algorithme avec retour<br>
+                        <strong>Passage par valeur :</strong> copie de la valeur<br>
+                        <strong>Passage par variable :</strong> accès direct (var)
+                    </div>
+
+                    <h3>En Langage C</h3>
+                    <div class="definition-box">
+                        <strong>void :</strong> fonction sans retour (procédure)<br>
+                        <strong>type :</strong> fonction avec retour<br>
+                        <strong>Prototype :</strong> déclaration avant utilisation<br>
+                        <strong>Passage :</strong> uniquement par valeur en C
+                    </div>
+
+                    <h3>Structure d'un programme C</h3>
+                    <div class="code-block">
+                        <span class="keyword">#include</span> &lt;stdio.h&gt;
+                        <span class="keyword">#define</span> CONSTANTES
+
+                        <span class="comment">// Variables globales (si nécessaire)</span>
+
+                        <span class="comment">// Prototypes des fonctions</span>
+                        <span class="keyword">int</span> <span class="function">fonction1</span>(<span
+                            class="keyword">int</span>, <span class="keyword">int</span>);
+                        <span class="keyword">void</span> <span class="function">fonction2</span>(<span
+                            class="keyword">int</span>[]);
+
+                        <span class="comment">// Fonction principale</span>
+                        <span class="keyword">int</span> <span class="function">main</span>() {
+                        <span class="comment">// Variables locales</span>
+                        <span class="comment">// Instructions</span>
+                        <span class="keyword">return</span> 0;
+                        }
+
+                        <span class="comment">// Définitions des fonctions</span>
+                        <span class="keyword">int</span> <span class="function">fonction1</span>(<span
+                            class="keyword">int</span> a, <span class="keyword">int</span> b) {
+                        <span class="comment">// Corps de la fonction</span>
+                        <span class="keyword">return</span> resultat;
+                        }
+                    </div>
+
+                    <div class="example-box" style="margin-top: 30px;">
+                        <strong>✨ Félicitations !</strong><br>
+                        Vous avez terminé ce cours sur les fonctions.<br>
+                        Continuez à pratiquer et à coder ! 💻
+                    </div>
+
+                    <div class="note-section">
+                        <div class="note-header">
+                            <span class="note-title">📝 Notes finales</span>
+                            <div class="note-controls">
+                                <button class="note-btn" onclick="saveNote('note12')">💾 Sauvegarder</button>
+                            </div>
+                        </div>
+                        <div class="editor-toolbar">
+                            <select class="toolbar-btn" onchange="changeFontSize('editor12', this.value)">
+                                <option value="0.8rem">Petit</option>
+                                <option value="0.9rem" selected>Moyen</option>
+                                <option value="1rem">Grand</option>
+                            </select>
+                            <select class="toolbar-btn" onchange="changeFontFamily('editor12', this.value)">
+                                <option value="'JetBrains Mono', monospace" selected>JetBrains Mono</option>
+                                <option value="monospace">MonoLisa</option>
+                            </select>
+                            <button class="toolbar-btn" onclick="toggleTheme('editor12', this)">🌓 Theme</button>
+                        </div>
+                        <div class="note-editor" id="editor12" contenteditable="true" data-note-id="note12"></div>
+                    </div>
+                </div>
+                <div class="page-number">13</div>
+            </div>
+
+        </div>
+    </div>
+    <script src="action.js"></script>
+</body>
+
+</html>
